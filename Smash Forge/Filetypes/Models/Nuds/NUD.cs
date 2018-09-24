@@ -455,7 +455,7 @@ namespace Smash_Forge
                     {
                         if ((p.IsSelected || p.Parent.IsSelected))
                         {
-                            DrawModelSelection(p, shader, camera);
+                            DrawPolygonOutlines(p, shader, camera);
                         }
                     }
                 }
@@ -479,7 +479,7 @@ namespace Smash_Forge
                 }
             }
 
-            // Only draw polgons if the polygon and its parent are both checked.
+            // Only draw polygons if the polygon and its parent are both checked.
             foreach (Polygon p in opaque)
             {
                 if (p.Parent != null && ((Mesh)p.Parent).Checked && p.Checked)
@@ -609,21 +609,20 @@ namespace Smash_Forge
             }
         }
 
-        private void DrawModelSelection(Polygon p, Shader shader, Camera camera)
+        private void DrawPolygonOutlines(Polygon p, Shader shader, Camera camera)
         {
             GL.Enable(EnableCap.StencilTest);
             GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
             GL.Disable(EnableCap.DepthTest);
 
-            bool[] cwm = new bool[4];
-            GL.GetBoolean(GetIndexedPName.ColorWritemask, 4, cwm);
+            // HACK: The model has already been draw, so we need to disable color updates.
             GL.ColorMask(false, false, false, false);
 
             GL.StencilFunc(StencilFunction.Always, 1, 0xFF);
             GL.StencilMask(0xFF);
             p.renderMesh.Draw(shader, camera);
 
-            GL.ColorMask(cwm[0], cwm[1], cwm[2], cwm[3]);
+            GL.ColorMask(true, true, true, true);
 
             GL.StencilFunc(StencilFunction.Notequal, 1, 0xFF);
             GL.StencilMask(0x00);
@@ -640,6 +639,7 @@ namespace Smash_Forge
             GL.StencilMask(0xFF);
             GL.Clear(ClearBufferMask.StencilBufferBit);
             GL.Disable(EnableCap.StencilTest);
+            GL.Enable(EnableCap.DepthTest);
         }
 
         public void MakeMetal(int newDifTexId, int newCubeTexId, float[] minGain, float[] refColor, float[] fresParams, float[] fresColor, bool preserveDiffuse = false, bool preserveNrmMap = true)
