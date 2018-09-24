@@ -611,6 +611,7 @@ namespace Smash_Forge
 
         private void DrawPolygonOutlines(Polygon p, Shader shader, Camera camera)
         {
+            // Use the stencil and a scaled mesh to draw polygon outlines.
             GL.Enable(EnableCap.StencilTest);
             GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
             GL.Disable(EnableCap.DepthTest);
@@ -620,6 +621,9 @@ namespace Smash_Forge
 
             GL.StencilFunc(StencilFunction.Always, 1, 0xFF);
             GL.StencilMask(0xFF);
+            // Override the model color with white in the shader and set frag alpha to 1.
+            // Only use the geometry intself for cleaner outlines.
+            shader.SetInt("drawSelection", 1);
             p.renderMesh.Draw(shader, camera);
 
             GL.ColorMask(true, true, true, true);
@@ -627,8 +631,6 @@ namespace Smash_Forge
             GL.StencilFunc(StencilFunction.Notequal, 1, 0xFF);
             GL.StencilMask(0x00);
 
-            // Override the model color with white in the shader.
-            shader.SetInt("drawSelection", 1);
             shader.SetFloat("scaleAlongNormal", 0.075f);
 
             p.renderMesh.Draw(shader, camera);
