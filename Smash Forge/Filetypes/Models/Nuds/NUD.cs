@@ -611,9 +611,6 @@ namespace Smash_Forge
 
         private void DrawModelSelection(Polygon p, Shader shader, Camera camera)
         {
-            // This might have been changed to reverse subtract.
-            GL.BlendEquation(BlendEquationMode.FuncAdd);
-
             GL.Enable(EnableCap.StencilTest);
             GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
             GL.Disable(EnableCap.DepthTest);
@@ -624,7 +621,6 @@ namespace Smash_Forge
 
             GL.StencilFunc(StencilFunction.Always, 1, 0xFF);
             GL.StencilMask(0xFF);
-
             p.renderMesh.Draw(shader, camera);
 
             GL.ColorMask(cwm[0], cwm[1], cwm[2], cwm[3]);
@@ -634,18 +630,16 @@ namespace Smash_Forge
 
             // Override the model color with white in the shader.
             shader.SetInt("drawSelection", 1);
+            shader.SetFloat("scaleAlongNormal", 0.075f);
 
-            GL.LineWidth(2.0f);
-            p.renderMesh.SetWireFrame(true);
             p.renderMesh.Draw(shader, camera);
-            p.renderMesh.SetWireFrame(false);
 
             shader.SetInt("drawSelection", 0);
+            shader.SetFloat("scaleAlongNormal", 0);
 
             GL.StencilMask(0xFF);
             GL.Clear(ClearBufferMask.StencilBufferBit);
             GL.Disable(EnableCap.StencilTest);
-            GL.Enable(EnableCap.DepthTest);
         }
 
         public void MakeMetal(int newDifTexId, int newCubeTexId, float[] minGain, float[] refColor, float[] fresParams, float[] fresColor, bool preserveDiffuse = false, bool preserveNrmMap = true)

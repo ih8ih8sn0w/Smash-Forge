@@ -62,6 +62,8 @@ uniform int debug1;
 uniform int debug2;
 uniform int debugOption;
 
+uniform float scaleAlongNormal;
+
 uniform bones
 {
     mat4 transforms[200];
@@ -121,9 +123,9 @@ vec3 skinNRM(vec3 nr, ivec4 index)
 void main()
 {
     // Vertex Skinning
-    vec4 objPos = vec4(vPosition.xyz, 1.0);
+    vec4 objPos = vec4(vPosition.xyz + (normalize(vNormal.xyz) * scaleAlongNormal), 1.0);
     if (useBones == 1 && vBone.x != -1)
-       objPos = skin(vPosition, ivec4(vBone));
+       objPos = skin(objPos.xyz, ivec4(vBone));
 
     objPos.z *= zScale;
     objPos = nscMatrix * objPos;

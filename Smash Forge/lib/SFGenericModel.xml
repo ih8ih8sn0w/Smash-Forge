@@ -213,7 +213,7 @@
         </member>
         <member name="F:SFGenericModel.RenderState.AlphaTestSettings.referenceAlpha">
             <summary>
-            The comparision value used for <see cref="F:SFGenericModel.RenderState.AlphaTestSettings.alphaFunction"/>.
+            The comparison value used for <see cref="F:SFGenericModel.RenderState.AlphaTestSettings.alphaFunction"/>.
             <c>1.0</c> is opaque. <c>0.0</c> is transparent.
             </summary>
         </member>
