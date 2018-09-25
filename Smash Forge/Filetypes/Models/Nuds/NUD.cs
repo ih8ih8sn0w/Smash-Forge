@@ -441,11 +441,40 @@ namespace Smash_Forge
 
         private void DrawAllPolygons(Shader shader, Camera camera, bool drawPolyIds)
         {
+            SetNormalPassStencilUpdate();
             DrawShadedPolygons(shader, camera, drawPolyIds);
-            DrawSelectionOutlines(shader, camera);
+
+            // Use the stencil buffer and a scaled mesh to draw polygon outlines.
+            SetOutlinePassStencilUpdate();
+            DrawInflatedPolygons(shader, camera);
+
+            ResetStencilPass();
         }
 
-        private void DrawSelectionOutlines(Shader shader, Camera camera)
+        private static void ResetStencilPass()
+        {
+            GL.StencilMask(0xFF);
+            GL.Clear(ClearBufferMask.StencilBufferBit);
+            GL.Disable(EnableCap.StencilTest);
+            GL.Enable(EnableCap.DepthTest);
+        }
+
+        private static void SetOutlinePassStencilUpdate()
+        {
+            GL.Disable(EnableCap.DepthTest);
+            GL.StencilFunc(StencilFunction.Notequal, 1, 0xFF);
+            GL.StencilMask(0x00);
+        }
+
+        private static void SetNormalPassStencilUpdate()
+        {
+            GL.Enable(EnableCap.StencilTest);
+            GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
+            GL.StencilFunc(StencilFunction.Always, 1, 0xFF);
+            GL.StencilMask(0xFF);
+        }
+
+        private void DrawInflatedPolygons(Shader shader, Camera camera)
         {
             foreach (Mesh m in Nodes)
             {
@@ -455,7 +484,7 @@ namespace Smash_Forge
                     {
                         if ((p.IsSelected || p.Parent.IsSelected))
                         {
-                            DrawPolygonOutlines(p, shader, camera);
+                            DrawPolygonInflated(p, shader, camera);
                         }
                     }
                 }
@@ -609,39 +638,17 @@ namespace Smash_Forge
             }
         }
 
-        private void DrawPolygonOutlines(Polygon p, Shader shader, Camera camera)
+        private void DrawPolygonInflated(Polygon p, Shader shader, Camera camera)
         {
-            // Use the stencil and a scaled mesh to draw polygon outlines.
-            GL.Enable(EnableCap.StencilTest);
-            GL.StencilOp(StencilOp.Keep, StencilOp.Keep, StencilOp.Replace);
-            GL.Disable(EnableCap.DepthTest);
-
-            // HACK: The model has already been draw, so we need to disable color updates.
-            GL.ColorMask(false, false, false, false);
-
-            GL.StencilFunc(StencilFunction.Always, 1, 0xFF);
-            GL.StencilMask(0xFF);
-            // Override the model color with white in the shader and set frag alpha to 1.
-            // Only use the geometry intself for cleaner outlines.
+            // Override the model color with white in the shader and set fragment alpha to 1.
+            // Only use the geometry itself for cleaner outlines.
             shader.SetInt("drawSelection", 1);
-            p.renderMesh.Draw(shader, camera);
-
-            GL.ColorMask(true, true, true, true);
-
-            GL.StencilFunc(StencilFunction.Notequal, 1, 0xFF);
-            GL.StencilMask(0x00);
-
             shader.SetFloat("scaleAlongNormal", 0.075f);
 
             p.renderMesh.Draw(shader, camera);
 
             shader.SetInt("drawSelection", 0);
             shader.SetFloat("scaleAlongNormal", 0);
-
-            GL.StencilMask(0xFF);
-            GL.Clear(ClearBufferMask.StencilBufferBit);
-            GL.Disable(EnableCap.StencilTest);
-            GL.Enable(EnableCap.DepthTest);
         }
 
         public void MakeMetal(int newDifTexId, int newCubeTexId, float[] minGain, float[] refColor, float[] fresParams, float[] fresColor, bool preserveDiffuse = false, bool preserveNrmMap = true)
