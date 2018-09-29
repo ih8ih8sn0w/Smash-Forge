@@ -476,6 +476,12 @@ namespace Smash_Forge
 
         private void DrawInflatedPolygons(Shader shader, Camera camera)
         {
+            // Override the model color with white in the shader and set fragment alpha to 1.
+            // Only use the geometry itself for cleaner outlines.
+            shader.SetInt("drawSelection", 1);
+            shader.SetFloat("scaleAlongNormal", 0.1f);
+            //GL.Disable(EnableCap.DepthTest);
+
             foreach (Mesh m in Nodes)
             {
                 foreach (Polygon p in m.Nodes)
@@ -489,6 +495,10 @@ namespace Smash_Forge
                     }
                 }
             }
+
+            shader.SetInt("drawSelection", 0);
+            shader.SetFloat("scaleAlongNormal", 0);
+            GL.Enable(EnableCap.DepthTest);
         }
 
         private void DrawShadedPolygons(Shader shader, Camera camera, bool drawPolyIds = false)
@@ -640,15 +650,7 @@ namespace Smash_Forge
 
         private void DrawPolygonInflated(Polygon p, Shader shader, Camera camera)
         {
-            // Override the model color with white in the shader and set fragment alpha to 1.
-            // Only use the geometry itself for cleaner outlines.
-            shader.SetInt("drawSelection", 1);
-            shader.SetFloat("scaleAlongNormal", 0.075f);
-
             p.renderMesh.Draw(shader, camera);
-
-            shader.SetInt("drawSelection", 0);
-            shader.SetFloat("scaleAlongNormal", 0);
         }
 
         public void MakeMetal(int newDifTexId, int newCubeTexId, float[] minGain, float[] refColor, float[] fresParams, float[] fresColor, bool preserveDiffuse = false, bool preserveNrmMap = true)
